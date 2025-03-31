@@ -148,6 +148,7 @@ The loader requires specific properties set to establish a connection to the dat
 
 1. Begin by creating your application.properties file. This can be done by copying from an example or template provided in the project:
 ```bash
+cd src/main/resources/
 cp application.properties.example application.properties
 ```
 

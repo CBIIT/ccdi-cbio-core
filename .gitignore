@@ -28,6 +28,7 @@ replay_pid*
 /.settings/
 .classpath
 .factorypath
+/data
 
 .idea
 /dependency-reduced-pom.xml
@@ -41,4 +42,4 @@ __pycache__/
 *.html~
 
 # app properties that contains credentials
-/application.properties
+/src/main/resources/application.properties
