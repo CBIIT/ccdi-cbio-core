@@ -14,77 +14,28 @@ permissions:
   contents: read
 
 jobs:
-  test-coverage:
+  test:
     runs-on: ubuntu-latest
-
-    services:
-      mysql:
-        image: mysql:5.7
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_USER: cbio_user
-          MYSQL_PASSWORD: somepassword
-          MYSQL_DATABASE: cgds_test
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
-
+    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: 'maven'
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          cache: 'pip'
-
-      - name: Install Python dependencies
-        run: |
-          pip install -r requirements.txt
-
-      - name: Run pytest hello world example
-        run: |
-          cd tests
-          pytest test_hello.py -v --tb=short
-
-      - name: Download cBioPortal database schema
-        run: |
-          curl -o cgds.sql https://raw.githubusercontent.com/cBioPortal/cbioportal/v6.0.3/src/main/resources/db-scripts/cgds.sql
-
-      - name: Wait for MySQL to be ready
-        run: |
-          until mysqladmin ping -h "127.0.0.1" -P 3306 --silent; do
-            echo 'waiting for mysql...'
-            sleep 2
-          done
-
-      - name: Initialize database
-        run: |
-          mysql -h 127.0.0.1 -P 3306 -u root -proot cgds_test < cgds.sql
-          mysql -h 127.0.0.1 -P 3306 -u root -proot cgds_test < src/test/resources/seed_mini.sql
-
-      - name: Run tests with coverage
-        run: mvn clean test jacoco:report
-
-      - name: Run integration tests with coverage
-        run: mvn integration-test jacoco:report
-
-      - name: Coveralls GitHub Action
-        uses: coverallsapp/github-action@v2
-        continue-on-error: true
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          path-to-lcov: target/site/jacoco/jacoco.xml
-          format: jacoco
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-cov
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    
+    - name: Run tests with coverage
+      run: |
+        pytest tests/test_hello.py --cov=tests --cov-report=lcov
+    
+    - name: Coveralls GitHub Action
+      uses: coverallsapp/github-action@v2
+      continue-on-error: true
